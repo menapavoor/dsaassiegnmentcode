@@ -19,13 +19,11 @@ struct Node* createNode(int data)
 
 struct Node* adj[MAX];
 int visited[MAX];
-int recStack[MAX];
 
-// DFS for cycle detection
-int dfs(int v)
+// DFS function
+int dfs(int v, int parent)
 {
     visited[v] = 1;
-    recStack[v] = 1;
 
     struct Node* temp = adj[v];
 
@@ -33,16 +31,19 @@ int dfs(int v)
     {
         int u = temp->data;
 
-        if(!visited[u] && dfs(u))
-            return 1;
-
-        else if(recStack[u])
-            return 1;
+        if(!visited[u])
+        {
+            if(dfs(u, v))
+                return 1;
+        }
+        else if(u != parent)
+        {
+            return 1; // cycle found
+        }
 
         temp = temp->next;
     }
 
-    recStack[v] = 0; // remove from recursion stack
     return 0;
 }
 
@@ -57,10 +58,9 @@ int main()
     {
         adj[i] = NULL;
         visited[i] = 0;
-        recStack[i] = 0;
     }
 
-    // input edges (DIRECTED)
+    // input edges (UNDIRECTED)
     for(int i = 0; i < m; i++)
     {
         int u, v;
@@ -69,6 +69,10 @@ int main()
         struct Node* newNode = createNode(v);
         newNode->next = adj[u];
         adj[u] = newNode;
+
+        newNode = createNode(u);
+        newNode->next = adj[v];
+        adj[v] = newNode;
     }
 
     int hasCycle = 0;
@@ -77,7 +81,7 @@ int main()
     {
         if(!visited[i])
         {
-            if(dfs(i))
+            if(dfs(i, -1))
             {
                 hasCycle = 1;
                 break;
